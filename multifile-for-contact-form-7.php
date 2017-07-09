@@ -3,7 +3,7 @@
 * Plugin Name: Multifile Upload Field for Contact Form 7
 * Plugin URI: https://wordpress.org/plugins/multifile-upload-field-for-contact-form-7/
 * Description: Adds multiple file field for contact form 7
-* Version: 1.1.1
+* Version: 1.0.2
 * Author: Spyros Vlachopoulos
 * Contributors: KacperSzarek, Octavian Fedorovici
 * Author URI: https://codeable.io/developers/spyros-vlachopoulos/
