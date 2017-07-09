@@ -3,9 +3,9 @@
 * Plugin Name: Multifile Upload Field for Contact Form 7
 * Plugin URI: https://wordpress.org/plugins/multifile-upload-field-for-contact-form-7/
 * Description: Adds multiple file field for contact form 7
-* Version: 1.0.1
+* Version: 1.1.1
 * Author: Spyros Vlachopoulos
-* Contributors: KacperSzarek
+* Contributors: KacperSzarek, Octavian Fedorovici
 * Author URI: https://codeable.io/developers/spyros-vlachopoulos/
 * License: GPL2
 */
@@ -46,13 +46,11 @@ function wpcf7_multifile_shortcode_handler( $tag ) {
 	$atts['tabindex'] = $tag->get_option( 'tabindex', 'int', true );
 	$atts['accept'] = $tag->get_option( 'accept', null, true);
 	$atts['multiple'] = 'multiple';
-  
-  $accept_wildcard = '';
-  $accept_wildcard = $tag->get_option( 'accept_wildcard');
-  
-	if ( !empty($accept_wildcard)) {
+
+	if ( $tag->get_option( 'accept_wildcard', '*' ) ) {
     $atts['accept'] = $atts['accept'] .'/*';
   }
+
 	if ( $tag->is_required() ) {
 		$atts['aria-required'] = 'true';
 	}
@@ -61,7 +59,7 @@ function wpcf7_multifile_shortcode_handler( $tag ) {
 
 	$atts['type'] = 'file';
 	$atts['name'] = $tag->name.'[]';
-  
+
   $atts = apply_filters('cf7_multifile_atts', $atts);
 
 	$atts = wpcf7_format_atts( $atts );
@@ -102,16 +100,16 @@ function wpcf7_multifile_validation_filter( $result, $tag ) {
   $uniqid = uniqid();
 
 	$original_files_array = isset( $_FILES[$name] ) ? $_FILES[$name] : null;
-  
+
   if ($original_files_array === null) {
     return $result;
   }
-  
+
   $total = count($_FILES[$name]['name']);
-  
+
   $files = array();
   $new_files = array();
-  
+
   for ($i=0; $i<$total; $i++) {
     $files[] = array(
       'name'      => $original_files_array['name'][$i],
@@ -121,11 +119,11 @@ function wpcf7_multifile_validation_filter( $result, $tag ) {
       'size'      => $original_files_array['size'][$i]
     );
   }
-  
+
   // file loop start
   foreach ($files as $file) {
-    
-    
+
+
     if ( $file['error'] && UPLOAD_ERR_NO_FILE != $file['error'] ) {
       $result->invalidate( $tag, wpcf7_get_message( 'upload_failed_php_error' ) );
       multifile_remove($new_files);
@@ -222,33 +220,33 @@ function wpcf7_multifile_validation_filter( $result, $tag ) {
       multifile_remove($new_files);
       return $result;
     }
-    
+
     $new_files[] = $new_file;
 
     // Make sure the uploaded file is only readable for the owner process
     @chmod( $new_file, 0400 );
+  } // file loop end
 
+	if ( $tag->get_option( 'send_zip', '*' ) ) {
+	  $zipped_files = trailingslashit( $uploads_dir ).$uniqid.'.zip';
+	  $zipping = multifile_create_zip($new_files, $zipped_files);
+	  @chmod( $zipped_files, 0400 );
 
-  
-  }
-  
-  // file loop end
-  $zipped_files = trailingslashit( $uploads_dir ).$uniqid.'.zip';
-  $zipping = multifile_create_zip($new_files, $zipped_files);
-  @chmod( $zipped_files, 0400 );
-  
-  if ($zipping === false) {
-    $result->invalidate( $tag, wpcf7_get_message( 'zipping_failed' ) );
-    multifile_remove($new_files);
-    return $result;
-  }
-  
-  multifile_remove($new_files);
-  
-  if ( $submission = WPCF7_Submission::get_instance() ) {
-    $submission->add_uploaded_file( $name, $zipped_files );
-  }
-  
+	  if ($zipping === false) {
+	    $result->invalidate( $tag, wpcf7_get_message( 'zipping_failed' ) );
+	    multifile_remove($new_files);
+	    return $result;
+	  }
+
+	  multifile_remove($new_files);
+
+	  if ( $submission = WPCF7_Submission::get_instance() ) {
+	    $submission->add_uploaded_file( $name, $zipped_files );
+	  }
+	} else {
+		add_uploaded_multifile( $name, $new_files );
+	}
+
 	return $result;
 }
 
@@ -263,7 +261,7 @@ function wpcf7_multifile_messages( $messages ) {
 			'description' => __( "Uploading a file fails for any reason", 'contact-form-7' ),
 			'default' => __( "There was an unknown error uploading the file.", 'contact-form-7' )
 		),
-    
+
 		'zipping_failed' => array(
 			'description' => __( "Zipping files fails for any reason", 'contact-form-7' ),
 			'default' => __( "There was an unknown error zippng the files.", 'contact-form-7' )
@@ -336,18 +334,27 @@ function wpcf7_tag_generator_multifile( $contact_form, $args = '' ) {
 	<th scope="row"><label for="<?php echo esc_attr( $args['content'] . '-filetypes' ); ?>"><?php echo esc_html( __( 'Acceptable file types', 'contact-form-7' ) ); ?></label></th>
 	<td><input type="text" name="filetypes" class="filetype oneline option" id="<?php echo esc_attr( $args['content'] . '-filetypes' ); ?>" /></td>
 	</tr>
-  
-  
+
+
 	<tr>
 	<th scope="row"><label for="<?php echo esc_attr( $args['content'] . '-accept' ); ?>"><?php echo esc_html( __( 'Accept input attribute', 'contact-form-7' ) ); ?></label></th>
 	<td><input type="text" name="accept" class="filetype oneline option" id="<?php echo esc_attr( $args['content'] . '-accept' ); ?>" /></td>
 	</tr>
-  
+
   <tr>
-  <th scope="row"><label for="<?php echo esc_attr( $args['content'] . '-accept_wildcard' ); ?>"><?php echo esc_html( __( 'Add  accept wildcard /*', 'contact-form-7' ) ); ?></label></th>
+  <th scope="row"><label for="<?php echo esc_attr( $args['content'] . '-accept_wildcard' ); ?>"><?php echo esc_html( __( 'Accept wildcard /*', 'contact-form-7' ) ); ?></label></th>
 	<td>
 		<fieldset>
-    <input type="text" name="accept_wildcard" class="filetype oneline option" id="<?php echo esc_attr( $args['content'] . '-accept_wildcard' ); ?>" /><small><?php echo __('Type "yes" to add wildcard'); ?></small>
+    <input type="checkbox" name="accept_wildcard" class="option" id="<?php echo esc_attr( $args['content'] . '-accept_wildcard' ); ?>" />
+		</fieldset>
+	</td>
+	</tr>
+
+	<tr>
+	<th scope="row"><label for="<?php echo esc_attr( $args['content'] . '-send_zip' ); ?>"><?php echo esc_html( __( 'Send ZIP archive', 'contact-form-7' ) ); ?></label></th>
+	<td>
+		<fieldset>
+		<input type="checkbox" name="send_zip" class="option" id="<?php echo esc_attr( $args['content'] . '-send_zip' ); ?>" />
 		</fieldset>
 	</td>
 	</tr>
@@ -439,10 +446,10 @@ function multifile_create_zip($files = array(),$destination = '',$overwrite = fa
 		}
 		//debug
 		//echo 'The zip archive contains ',$zip->numFiles,' files with a status of ',$zip->status;
-		
+
 		//close the zip -- done!
 		$zip->close();
-		
+
 		//check to make sure the file exists
 		return file_exists($destination);
 	}
@@ -459,5 +466,29 @@ function multifile_remove($new_files) {
       @unlink( $to_delete );
       @rmdir( dirname( $to_delete ) ); // remove parent dir if it's removable (empty).
     }
+  }
+}
+
+// Add each file as a separate attachment
+function add_uploaded_multifile($name, $new_files) {
+	$submission = WPCF7_Submission::get_instance();
+
+  if ($submission && !empty($new_files)) {
+    foreach($new_files as $to_add) {
+      $submission->add_uploaded_file( basename($to_add), $to_add );
+    }
+
+		// Replace the multifile value for the File Attachments field in the Mail tab of CF7
+		// to match the new uploaded filenames
+		$new_attachments = '[' . implode('][', array_map(basename, $new_files)) . ']';
+
+  	$wpcf7 = WPCF7_ContactForm::get_current();
+  	$mail = $wpcf7->prop('mail');
+  	$mail['attachments'] = str_replace('['.$name.']', $new_attachments, $mail['attachments']);
+
+  	// Save the email body
+  	$wpcf7->set_properties(array(
+      "mail" => $mail
+  	));
   }
 }
