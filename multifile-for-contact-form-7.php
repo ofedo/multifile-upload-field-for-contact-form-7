@@ -48,8 +48,8 @@ function wpcf7_multifile_shortcode_handler( $tag ) {
 	$atts['multiple'] = 'multiple';
 
 	if ( $tag->get_option( 'accept_wildcard', '*' ) ) {
-    $atts['accept'] = $atts['accept'] .'/*';
-  }
+		$atts['accept'] = $atts['accept'] .'/*';
+	}
 
 	if ( $tag->is_required() ) {
 		$atts['aria-required'] = 'true';
@@ -60,7 +60,7 @@ function wpcf7_multifile_shortcode_handler( $tag ) {
 	$atts['type'] = 'file';
 	$atts['name'] = $tag->name.'[]';
 
-  $atts = apply_filters('cf7_multifile_atts', $atts);
+	$atts = apply_filters('cf7_multifile_atts', $atts);
 
 	$atts = wpcf7_format_atts( $atts );
 
@@ -97,152 +97,152 @@ function wpcf7_multifile_validation_filter( $result, $tag ) {
 
 	$name = $tag->name;
 	$id = $tag->get_id_option();
-  $uniqid = uniqid();
+	$uniqid = uniqid();
 
 	$original_files_array = isset( $_FILES[$name] ) ? $_FILES[$name] : null;
 
-  if ($original_files_array === null) {
-    return $result;
-  }
+	if ($original_files_array === null) {
+		return $result;
+	}
 
-  $total = count($_FILES[$name]['name']);
+	$total = count($_FILES[$name]['name']);
 
-  $files = array();
-  $new_files = array();
+	$files = array();
+	$new_files = array();
 
-  for ($i=0; $i<$total; $i++) {
-    $files[] = array(
-      'name'      => $original_files_array['name'][$i],
-      'type'      => $original_files_array['type'][$i],
-      'tmp_name'  => $original_files_array['tmp_name'][$i],
-      'error'     => $original_files_array['error'][$i],
-      'size'      => $original_files_array['size'][$i]
-    );
-  }
+	for ($i=0; $i<$total; $i++) {
+		$files[] = array(
+			'name'      => $original_files_array['name'][$i],
+			'type'      => $original_files_array['type'][$i],
+			'tmp_name'  => $original_files_array['tmp_name'][$i],
+			'error'     => $original_files_array['error'][$i],
+			'size'      => $original_files_array['size'][$i]
+		);
+	}
 
-  // file loop start
-  foreach ($files as $file) {
+	// file loop start
+	foreach ($files as $file) {
 
 
-    if ( $file['error'] && UPLOAD_ERR_NO_FILE != $file['error'] ) {
-      $result->invalidate( $tag, wpcf7_get_message( 'upload_failed_php_error' ) );
-      multifile_remove($new_files);
-      return $result;
-    }
+		if ( $file['error'] && UPLOAD_ERR_NO_FILE != $file['error'] ) {
+			$result->invalidate( $tag, wpcf7_get_message( 'upload_failed_php_error' ) );
+			multifile_remove($new_files);
+			return $result;
+		}
 
-    if ( empty( $file['tmp_name'] ) && $tag->is_required() ) {
-      $result->invalidate( $tag, wpcf7_get_message( 'invalid_required' ) );
-      return $result;
-    }
+		if ( empty( $file['tmp_name'] ) && $tag->is_required() ) {
+			$result->invalidate( $tag, wpcf7_get_message( 'invalid_required' ) );
+			return $result;
+		}
 
-    if ( ! is_uploaded_file( $file['tmp_name'] ) )
-      return $result;
+		if ( ! is_uploaded_file( $file['tmp_name'] ) )
+			return $result;
 
-    $allowed_file_types = array();
+		$allowed_file_types = array();
 
-    if ( $file_types_a = $tag->get_option( 'filetypes' ) ) {
-      foreach ( $file_types_a as $file_types ) {
-        $file_types = explode( '|', $file_types );
+		if ( $file_types_a = $tag->get_option( 'filetypes' ) ) {
+			foreach ( $file_types_a as $file_types ) {
+				$file_types = explode( '|', $file_types );
 
-        foreach ( $file_types as $file_type ) {
-          $file_type = trim( $file_type, '.' );
-          $file_type = str_replace( array( '.', '+', '*', '?' ),
-            array( '\.', '\+', '\*', '\?' ), $file_type );
-          $allowed_file_types[] = $file_type;
-        }
-      }
-    }
+				foreach ( $file_types as $file_type ) {
+					$file_type = trim( $file_type, '.' );
+					$file_type = str_replace( array( '.', '+', '*', '?' ),
+						array( '\.', '\+', '\*', '\?' ), $file_type );
+					$allowed_file_types[] = $file_type;
+				}
+			}
+		}
 
-    $allowed_file_types = array_unique( $allowed_file_types );
-    $file_type_pattern = implode( '|', $allowed_file_types );
+		$allowed_file_types = array_unique( $allowed_file_types );
+		$file_type_pattern = implode( '|', $allowed_file_types );
 
-    $allowed_size = apply_filters('cf7_multifile_max_size', 10048576); // default size 1 MB
+		$allowed_size = apply_filters('cf7_multifile_max_size', 10048576); // default size 1 MB
 
-    if ( $file_size_a = $tag->get_option( 'limit' ) ) {
-      $limit_pattern = '/^([1-9][0-9]*)([kKmM]?[bB])?$/';
+		if ( $file_size_a = $tag->get_option( 'limit' ) ) {
+			$limit_pattern = '/^([1-9][0-9]*)([kKmM]?[bB])?$/';
 
-      foreach ( $file_size_a as $file_size ) {
-        if ( preg_match( $limit_pattern, $file_size, $matches ) ) {
-          $allowed_size = (int) $matches[1];
+			foreach ( $file_size_a as $file_size ) {
+				if ( preg_match( $limit_pattern, $file_size, $matches ) ) {
+					$allowed_size = (int) $matches[1];
 
-          if ( ! empty( $matches[2] ) ) {
-            $kbmb = strtolower( $matches[2] );
+					if ( ! empty( $matches[2] ) ) {
+						$kbmb = strtolower( $matches[2] );
 
-            if ( 'kb' == $kbmb )
-              $allowed_size *= 1024;
-            elseif ( 'mb' == $kbmb )
-              $allowed_size *= 1024 * 1024;
-          }
+						if ( 'kb' == $kbmb )
+							$allowed_size *= 1024;
+						elseif ( 'mb' == $kbmb )
+							$allowed_size *= 1024 * 1024;
+					}
 
-          break;
-        }
-      }
-    }
+					break;
+				}
+			}
+		}
 
-    /* File type validation */
+		/* File type validation */
 
-    // Default file-type restriction
-    if ( '' == $file_type_pattern )
-      $file_type_pattern = 'jpg|jpeg|png|gif|pdf|doc|docx|ppt|pptx|odt|avi|ogg|m4a|mov|mp3|mp4|mpg|wav|wmv';
+		// Default file-type restriction
+		if ( '' == $file_type_pattern )
+			$file_type_pattern = 'jpg|jpeg|png|gif|pdf|doc|docx|ppt|pptx|odt|avi|ogg|m4a|mov|mp3|mp4|mpg|wav|wmv';
 
-    $file_type_pattern = trim( $file_type_pattern, '|' );
-    $file_type_pattern = '(' . $file_type_pattern . ')';
-    $file_type_pattern = '/\.' . $file_type_pattern . '$/i';
+		$file_type_pattern = trim( $file_type_pattern, '|' );
+		$file_type_pattern = '(' . $file_type_pattern . ')';
+		$file_type_pattern = '/\.' . $file_type_pattern . '$/i';
 
-    if ( ! preg_match( $file_type_pattern, $file['name'] ) ) {
-      $result->invalidate( $tag, wpcf7_get_message( 'upload_file_type_invalid' ) );
-      multifile_remove($new_files);
-      return $result;
-    }
+		if ( ! preg_match( $file_type_pattern, $file['name'] ) ) {
+			$result->invalidate( $tag, wpcf7_get_message( 'upload_file_type_invalid' ) );
+			multifile_remove($new_files);
+			return $result;
+		}
 
-    /* File size validation */
+		/* File size validation */
 
-    if ( $file['size'] > $allowed_size ) {
-      $result->invalidate( $tag, wpcf7_get_message( 'upload_file_too_large' ) );
-      multifile_remove($new_files);
-      return $result;
-    }
+		if ( $file['size'] > $allowed_size ) {
+			$result->invalidate( $tag, wpcf7_get_message( 'upload_file_too_large' ) );
+			multifile_remove($new_files);
+			return $result;
+		}
 
-    wpcf7_init_uploads(); // Confirm upload dir
-    $uploads_dir = wpcf7_upload_tmp_dir();
-    $uploads_dir = wpcf7_maybe_add_random_dir( $uploads_dir );
+		wpcf7_init_uploads(); // Confirm upload dir
+		$uploads_dir = wpcf7_upload_tmp_dir();
+		$uploads_dir = wpcf7_maybe_add_random_dir( $uploads_dir );
 
-    $filename = $file['name'];
-    $filename = wpcf7_canonicalize( $filename );
-    $filename = sanitize_file_name( $filename );
-    $filename = wpcf7_antiscript_file_name( $filename );
-    $filename = wp_unique_filename( $uploads_dir, $filename );
+		$filename = $file['name'];
+		$filename = wpcf7_canonicalize( $filename );
+		$filename = sanitize_file_name( $filename );
+		$filename = wpcf7_antiscript_file_name( $filename );
+		$filename = wp_unique_filename( $uploads_dir, $filename );
 
-    $new_file = trailingslashit( $uploads_dir ) . $filename;
+		$new_file = trailingslashit( $uploads_dir ) . $filename;
 
-    if ( false === @move_uploaded_file( $file['tmp_name'], $new_file ) ) {
-      $result->invalidate( $tag, wpcf7_get_message( 'upload_failed' ) );
-      multifile_remove($new_files);
-      return $result;
-    }
+		if ( false === @move_uploaded_file( $file['tmp_name'], $new_file ) ) {
+			$result->invalidate( $tag, wpcf7_get_message( 'upload_failed' ) );
+			multifile_remove($new_files);
+			return $result;
+		}
 
-    $new_files[] = $new_file;
+		$new_files[] = $new_file;
 
-    // Make sure the uploaded file is only readable for the owner process
-    @chmod( $new_file, 0400 );
-  } // file loop end
+		// Make sure the uploaded file is only readable for the owner process
+		@chmod( $new_file, 0400 );
+	} // file loop end
 
 	if ( $tag->get_option( 'send_zip', '*' ) ) {
-	  $zipped_files = trailingslashit( $uploads_dir ).$uniqid.'.zip';
-	  $zipping = multifile_create_zip($new_files, $zipped_files);
-	  @chmod( $zipped_files, 0400 );
+		$zipped_files = trailingslashit( $uploads_dir ).$uniqid.'.zip';
+		$zipping = multifile_create_zip($new_files, $zipped_files);
+		@chmod( $zipped_files, 0400 );
 
-	  if ($zipping === false) {
-	    $result->invalidate( $tag, wpcf7_get_message( 'zipping_failed' ) );
-	    multifile_remove($new_files);
-	    return $result;
-	  }
+		if ($zipping === false) {
+			$result->invalidate( $tag, wpcf7_get_message( 'zipping_failed' ) );
+			multifile_remove($new_files);
+			return $result;
+		}
 
-	  multifile_remove($new_files);
+		multifile_remove($new_files);
 
-	  if ( $submission = WPCF7_Submission::get_instance() ) {
-	    $submission->add_uploaded_file( $name, $zipped_files );
-	  }
+		if ( $submission = WPCF7_Submission::get_instance() ) {
+			$submission->add_uploaded_file( $name, $zipped_files );
+		}
 	} else {
 		add_uploaded_multifile( $name, $new_files );
 	}
@@ -341,11 +341,11 @@ function wpcf7_tag_generator_multifile( $contact_form, $args = '' ) {
 	<td><input type="text" name="accept" class="filetype oneline option" id="<?php echo esc_attr( $args['content'] . '-accept' ); ?>" /></td>
 	</tr>
 
-  <tr>
-  <th scope="row"><label for="<?php echo esc_attr( $args['content'] . '-accept_wildcard' ); ?>"><?php echo esc_html( __( 'Accept wildcard /*', 'contact-form-7' ) ); ?></label></th>
+	<tr>
+	<th scope="row"><label for="<?php echo esc_attr( $args['content'] . '-accept_wildcard' ); ?>"><?php echo esc_html( __( 'Accept wildcard /*', 'contact-form-7' ) ); ?></label></th>
 	<td>
 		<fieldset>
-    <input type="checkbox" name="accept_wildcard" class="option" id="<?php echo esc_attr( $args['content'] . '-accept_wildcard' ); ?>" />
+		<input type="checkbox" name="accept_wildcard" class="option" id="<?php echo esc_attr( $args['content'] . '-accept_wildcard' ); ?>" />
 		</fieldset>
 	</td>
 	</tr>
@@ -461,34 +461,34 @@ function multifile_create_zip($files = array(),$destination = '',$overwrite = fa
 
 
 function multifile_remove($new_files) {
-  if (!empty($new_files)) {
-    foreach($new_files as $to_delete) {
-      @unlink( $to_delete );
-      @rmdir( dirname( $to_delete ) ); // remove parent dir if it's removable (empty).
-    }
-  }
+	if (!empty($new_files)) {
+		foreach($new_files as $to_delete) {
+			@unlink( $to_delete );
+			@rmdir( dirname( $to_delete ) ); // remove parent dir if it's removable (empty).
+		}
+	}
 }
 
 // Add each file as a separate attachment
 function add_uploaded_multifile($name, $new_files) {
 	$submission = WPCF7_Submission::get_instance();
 
-  if ($submission && !empty($new_files)) {
-    foreach($new_files as $to_add) {
-      $submission->add_uploaded_file( basename($to_add), $to_add );
-    }
+	if ($submission && !empty($new_files)) {
+		foreach($new_files as $to_add) {
+			$submission->add_uploaded_file( basename($to_add), $to_add );
+		}
 
 		// Replace the multifile value for the File Attachments field in the Mail tab of CF7
 		// to match the new uploaded filenames
 		$new_attachments = '[' . implode('][', array_map(basename, $new_files)) . ']';
 
-  	$wpcf7 = WPCF7_ContactForm::get_current();
-  	$mail = $wpcf7->prop('mail');
-  	$mail['attachments'] = str_replace('['.$name.']', $new_attachments, $mail['attachments']);
+		$wpcf7 = WPCF7_ContactForm::get_current();
+		$mail = $wpcf7->prop('mail');
+		$mail['attachments'] = str_replace('['.$name.']', $new_attachments, $mail['attachments']);
 
-  	// Save the email body
-  	$wpcf7->set_properties(array(
-      "mail" => $mail
-  	));
-  }
+		// Save the email body
+		$wpcf7->set_properties(array(
+			"mail" => $mail
+		));
+	}
 }
