@@ -1,5 +1,5 @@
 === Multifile Upload Field for Contact Form 7 ===
-Contributors: spyrosvl,hoody_pl
+Contributors: spyrosvl,hoody_pl,ofedo
 Tags: contact, form, contact form, contact form 7 multiple files upload, 
 Requires at least: 4.3
 Tested up to: 4.7.4
